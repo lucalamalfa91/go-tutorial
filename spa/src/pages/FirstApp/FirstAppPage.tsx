@@ -6,20 +6,21 @@ export default function FirstAppPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <span className={styles.badge}>Session 2 · Module 7 · ~120 min</span>
-        <h1>Calorie Counter for Cocktails and Beers</h1>
+        <span className={styles.badge}>Session 2 · Module 7 · ~145 min</span>
+        <h1>Open Bar Damage Tracker</h1>
         <p className={styles.intro}>
-          Your first real Go application. A CLI tool that tracks drinks and calculates calorie summaries.
-          Built step by step using structs, slices, and functions.
+          EduCamp 2026 — Mallorca edition. You are here to learn Go. There is also an open bar,
+          which is less great for your calorie balance. This CLI tracks every drink from the evening
+          and tells you exactly how many kilometres to run on the beach the next morning.
         </p>
       </header>
 
       <section className={styles.section}>
         <h2>Goal</h2>
         <p>
-          Build a command-line program that lets a user add drinks (beers and cocktails),
-          see a list of all drinks, and get a calorie summary including total, average,
-          and the highest-calorie item.
+          Build a command-line program that logs cocktails and beers, shows the full drink list,
+          and produces a damage report: total calories, average per drink, worst offender,
+          and kilometres of running needed to burn it all off.
         </p>
       </section>
 
@@ -42,9 +43,9 @@ export default function FirstAppPage() {
           <div className={styles.stepNum}>01</div>
           <div className={styles.stepContent}>
             <h3>Create the project</h3>
-            <pre><code className="language-bash">{`mkdir calorie-counter
-cd calorie-counter
-go mod init calorie-counter`}</code></pre>
+            <pre><code className="language-bash">{`mkdir open-bar-tracker
+cd open-bar-tracker
+go mod init open-bar-tracker`}</code></pre>
           </div>
         </div>
 
@@ -94,24 +95,28 @@ type Drink struct {
         <div className={styles.step}>
           <div className={styles.stepNum}>05</div>
           <div className={styles.stepContent}>
-            <h3>Implement calorie summary</h3>
+            <h3>Implement the damage report</h3>
             <pre><code className="language-go">{`func summary(drinks []Drink) {
     if len(drinks) == 0 {
-        fmt.Println("No drinks added yet.")
+        fmt.Println("Nothing logged yet. The night is young.")
         return
     }
     total := 0
-    max := drinks[0]
+    highest := drinks[0]
     for _, d := range drinks {
         total += d.Calories
-        if d.Calories > max.Calories {
-            max = d
+        if d.Calories > highest.Calories {
+            highest = d
         }
     }
     avg := total / len(drinks)
-    fmt.Printf("Total: %d kcal\\n", total)
-    fmt.Printf("Average: %d kcal\\n", avg)
-    fmt.Printf("Highest: %s (%d kcal)\\n", max.Name, max.Calories)
+    kmToRun := float64(total) / 65.0 // ~65 kcal per km
+    fmt.Printf("\\n--- Damage Report ---\\n")
+    fmt.Printf("Total:          %d kcal\\n", total)
+    fmt.Printf("Average/drink:  %d kcal\\n", avg)
+    fmt.Printf("Worst offender: %s (%d kcal)\\n", highest.Name, highest.Calories)
+    fmt.Printf("To burn it off: %.1f km of running\\n", kmToRun)
+    fmt.Printf("Good luck tomorrow morning.\\n")
 }`}</code></pre>
           </div>
         </div>
@@ -124,20 +129,29 @@ type Drink struct {
     drinks := []Drink{}
     reader := bufio.NewReader(os.Stdin)
 
+    fmt.Println("EduCamp 2026 — Mallorca")
+    fmt.Println("Track your open bar consumption. No judgement.")
+
     for {
-        fmt.Println("\\n1) Add drink  2) List  3) Summary  4) Quit")
-        fmt.Print("> ")
+        fmt.Println("\\n=== Open Bar Damage Tracker ===")
+        fmt.Println("1) Log a drink")
+        fmt.Println("2) Show tonight's list")
+        fmt.Println("3) Damage report")
+        fmt.Println("4) I'm done (and scared)")
+        fmt.Print("\\nChoice: ")
         input, _ := reader.ReadString('\\n')
         choice := strings.TrimSpace(input)
 
         switch choice {
         case "1":
             // prompt name, category, calories and call addDrink
+            fmt.Println("Logged. The beach run gets longer.")
         case "2":
             listDrinks(drinks)
         case "3":
             summary(drinks)
         case "4":
+            fmt.Println("See you at 6am on the beach.")
             return
         }
     }
@@ -175,12 +189,32 @@ type Drink struct {
       </section>
 
       <section className={styles.section}>
+        <h2>Open bar reference</h2>
+        <p>Common calories to enter when testing the app at the actual bar:</p>
+        <table>
+          <thead>
+            <tr><th>Drink</th><th>Category</th><th>Approx. kcal</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Aperol Spritz</td><td>cocktail</td><td>160</td></tr>
+            <tr><td>Mojito</td><td>cocktail</td><td>180</td></tr>
+            <tr><td>Negroni</td><td>cocktail</td><td>200</td></tr>
+            <tr><td>Gin Tonic</td><td>cocktail</td><td>140</td></tr>
+            <tr><td>Margarita</td><td>cocktail</td><td>220</td></tr>
+            <tr><td>Piña Colada</td><td>cocktail</td><td>280</td></tr>
+            <tr><td>Estrella Damm</td><td>beer</td><td>145</td></tr>
+            <tr><td>IPA</td><td>beer</td><td>190</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className={styles.section}>
         <h2>Optional improvements</h2>
         <ul>
           <li>Save drinks to a JSON file with <code>json.Marshal</code> and <code>os.WriteFile</code></li>
           <li>Load drinks on startup if the JSON file exists</li>
-          <li>Add preloaded sample drinks for testing</li>
-          <li>Improve the CLI with better prompts and input validation</li>
+          <li>Write tests for <code>addDrink</code> and <code>filterByCategory</code> with <code>go test</code></li>
+          <li>Improve input validation — what if the user types letters for calories?</li>
         </ul>
       </section>
 
@@ -189,7 +223,7 @@ type Drink struct {
         <div className={styles.checkpoints}>
           <div className={styles.checkpoint}>Can you explain why a struct is useful here?</div>
           <div className={styles.checkpoint}>Can you explain why a slice is used instead of an array?</div>
-          <div className={styles.checkpoint}>How would you save the drinks list to a file?</div>
+          <div className={styles.checkpoint}>After 4 Negronis, how many km does the tracker tell you to run?</div>
         </div>
       </section>
 
