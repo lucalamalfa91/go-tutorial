@@ -104,11 +104,10 @@ export const curriculum: Curriculum = {
       order: 7,
       session: 'session-2',
       title: 'First working app',
-      estimatedMinutes: 145,
+      estimatedMinutes: 120,
       objectives: [
         'Design and build a small CLI application',
         'Model data with structs and slices',
-        'Optionally persist data with JSON',
         'Write basic tests with go test',
       ],
       prerequisites: ['idiomatic-go'],
