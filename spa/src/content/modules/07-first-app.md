@@ -14,14 +14,18 @@ objectives:
 
 ## Summary
 
-You are going to build a **Calorie Counter for Cocktails and Beers** — a CLI app that lets you track drinks and get a calorie summary.
+Welcome to **EduCamp 2026 — Mallorca edition**. You are here to learn Go. There is also an open bar, which is less great for your calorie balance.
+
+Your first real Go app solves an actual problem you are about to have: by the end of the week you need to know how much damage you did and how many kilometres to run on the beach to offset it.
+
+You are going to build the **Open Bar Damage Tracker** — a CLI that logs every cocktail and beer from the evening, totals the calories, and tells you exactly how much running awaits you the next morning. Practical. Necessary.
 
 ### Project setup
 
 ```bash
-mkdir calorie-counter
-cd calorie-counter
-go mod init calorie-counter
+mkdir open-bar-tracker
+cd open-bar-tracker
+go mod init open-bar-tracker
 ```
 
 ### The data model
@@ -80,7 +84,7 @@ func listDrinks(drinks []Drink) {
 ```go
 func summary(drinks []Drink) {
     if len(drinks) == 0 {
-        fmt.Println("No drinks to summarise.")
+        fmt.Println("Nothing logged yet. The night is young.")
         return
     }
     total := 0
@@ -92,9 +96,13 @@ func summary(drinks []Drink) {
         }
     }
     avg := total / len(drinks)
-    fmt.Printf("\nTotal:   %d kcal\n", total)
-    fmt.Printf("Average: %d kcal\n", avg)
-    fmt.Printf("Highest: %s (%d kcal)\n", highest.Name, highest.Calories)
+    kmToRun := float64(total) / 65.0 // ~65 kcal burned per km at average pace
+    fmt.Printf("\n--- Damage Report ---\n")
+    fmt.Printf("Total:         %d kcal\n", total)
+    fmt.Printf("Average/drink: %d kcal\n", avg)
+    fmt.Printf("Worst offender: %s (%d kcal)\n", highest.Name, highest.Calories)
+    fmt.Printf("To burn it off: %.1f km of running\n", kmToRun)
+    fmt.Printf("Good luck tomorrow morning.\n")
 }
 ```
 
@@ -119,12 +127,15 @@ func main() {
     drinks := []Drink{}
     reader := bufio.NewReader(os.Stdin)
 
+    fmt.Println("EduCamp 2026 — Mallorca")
+    fmt.Println("Track your open bar consumption. No judgement.")
+
     for {
-        fmt.Println("\n=== Calorie Counter ===")
-        fmt.Println("1) Add drink")
-        fmt.Println("2) List drinks")
-        fmt.Println("3) Summary")
-        fmt.Println("4) Quit")
+        fmt.Println("\n=== Open Bar Damage Tracker ===")
+        fmt.Println("1) Log a drink")
+        fmt.Println("2) Show tonight's list")
+        fmt.Println("3) Damage report")
+        fmt.Println("4) I'm done (and scared)")
         fmt.Print("\nChoice: ")
 
         choice, _ := reader.ReadString('\n')
@@ -132,7 +143,7 @@ func main() {
 
         switch choice {
         case "1":
-            name := readLine(reader, "Name: ")
+            name := readLine(reader, "Drink name: ")
             category := readLine(reader, "Category (beer/cocktail): ")
             calStr := readLine(reader, "Calories: ")
             cal, err := strconv.Atoi(calStr)
@@ -141,13 +152,13 @@ func main() {
                 continue
             }
             drinks = addDrink(drinks, name, category, cal)
-            fmt.Println("Drink added.")
+            fmt.Println("Logged. The beach run gets longer.")
         case "2":
             listDrinks(drinks)
         case "3":
             summary(drinks)
         case "4":
-            fmt.Println("Bye!")
+            fmt.Println("See you at 6am on the beach.")
             return
         default:
             fmt.Println("Unknown choice.")
@@ -192,6 +203,19 @@ func loadFromFile(path string) ([]Drink, error) {
 ```
 
 Call `loadFromFile` at startup and `saveToFile` after each add.
+
+A quick reference for common open-bar items:
+
+| Drink | Category | Approx. kcal |
+|-------|----------|-------------|
+| Aperol Spritz | cocktail | 160 |
+| Mojito | cocktail | 180 |
+| Negroni | cocktail | 200 |
+| Gin Tonic | cocktail | 140 |
+| Margarita | cocktail | 220 |
+| Piña Colada | cocktail | 280 |
+| Estrella Damm | beer | 145 |
+| IPA | beer | 190 |
 
 ## Exercise
 
@@ -250,24 +274,24 @@ import "testing"
 
 func TestAddDrink(t *testing.T) {
     drinks := []Drink{}
-    drinks = addDrink(drinks, "Lager", "beer", 150)
+    drinks = addDrink(drinks, "Aperol Spritz", "cocktail", 160)
 
     if len(drinks) != 1 {
         t.Errorf("expected 1 drink, got %d", len(drinks))
     }
-    if drinks[0].Name != "Lager" {
-        t.Errorf("expected name Lager, got %s", drinks[0].Name)
+    if drinks[0].Name != "Aperol Spritz" {
+        t.Errorf("expected Aperol Spritz, got %s", drinks[0].Name)
     }
-    if drinks[0].Calories != 150 {
-        t.Errorf("expected 150 kcal, got %d", drinks[0].Calories)
+    if drinks[0].Calories != 160 {
+        t.Errorf("expected 160 kcal, got %d", drinks[0].Calories)
     }
 }
 
 func TestFilterByCategory(t *testing.T) {
     drinks := []Drink{
-        {Name: "Lager", Category: "beer", Calories: 150},
-        {Name: "Mojito", Category: "cocktail", Calories: 220},
-        {Name: "IPA", Category: "beer", Calories: 180},
+        {Name: "Estrella Damm", Category: "beer", Calories: 145},
+        {Name: "Mojito", Category: "cocktail", Calories: 180},
+        {Name: "IPA", Category: "beer", Calories: 190},
     }
 
     beers := filterByCategory(drinks, "beer")
