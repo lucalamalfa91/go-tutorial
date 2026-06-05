@@ -2,11 +2,12 @@
 id: idiomatic-go
 title: Writing Go in a Go way
 session: session-2
-estimated_minutes: 45
+estimated_minutes: 85
 objectives:
   - Use gofmt and understand Go formatting conventions
   - Handle errors idiomatically with the if err != nil pattern
   - Apply Go naming conventions
+  - Define and satisfy interfaces implicitly
 ---
 
 # Writing Go in a Go way
@@ -147,6 +148,95 @@ func process(s string) error {
     return nil
 }
 ```
+
+### Interfaces
+
+An interface in Go defines a set of method signatures. A type satisfies an interface **implicitly** — just by having the right methods. There is no `implements` keyword.
+
+```text
+Java / C# (explicit):          Go (implicit):
+
+type Animal interface {         type Animal interface {
+    Sound() string                  Sound() string
+}                               }
+
+type Dog struct{}               type Dog struct{ Name string }
+// must declare intent          // just implement the method:
+// implements Animal
+func (d Dog) Sound() string {   func (d Dog) Sound() string {
+    return "woof"                   return "woof"
+}                               }
+                                → Dog satisfies Animal automatically
+```
+
+#### Your first interface: fmt.Stringer
+
+The `fmt` package defines this interface:
+
+```go
+type Stringer interface {
+    String() string
+}
+```
+
+Any type with a `String() string` method is automatically a `Stringer`. `fmt.Println` uses it to print your type the way you want.
+
+```go
+type Drink struct {
+    Name     string
+    Category string
+    Calories int
+}
+
+func (d Drink) String() string {
+    return fmt.Sprintf("%s (%s) — %d kcal", d.Name, d.Category, d.Calories)
+}
+
+beer := Drink{Name: "Lager", Category: "beer", Calories: 150}
+fmt.Println(beer) // Lager (beer) — 150 kcal
+```
+
+Without `String()`, `fmt.Println(beer)` would print `{Lager beer 150}`. No changes needed in the caller.
+
+#### error is an interface
+
+You have already been using an interface without knowing it. The built-in `error` type is:
+
+```go
+type error interface {
+    Error() string
+}
+```
+
+Every time you write `if err != nil`, you are working with an interface value. You can create your own error types by implementing this interface:
+
+```go
+type ValidationError struct {
+    Field   string
+    Message string
+}
+
+func (e ValidationError) Error() string {
+    return fmt.Sprintf("%s: %s", e.Field, e.Message)
+}
+```
+
+#### Interface values — what they hold
+
+```text
+interface variable
+┌──────────────────┬──────────────────────┐
+│  concrete type   │  concrete value      │
+│  *Drink          │  &Drink{...}         │
+└──────────────────┴──────────────────────┘
+nil interface → no type, no value → calling a method panics
+```
+
+#### When to reach for interfaces
+
+- Accept an interface as a function parameter when any type with those methods should work
+- The `io.Reader` / `io.Writer` pair from the standard library is a perfect example: files, network connections, and in-memory buffers all satisfy them, so code written against those interfaces works everywhere
+- Return concrete types from functions — the caller can always assign to an interface later
 
 ## Exercise
 

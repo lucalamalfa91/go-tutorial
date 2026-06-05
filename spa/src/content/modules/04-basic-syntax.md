@@ -2,11 +2,12 @@
 id: basic-syntax
 title: Basic syntax
 session: session-1
-estimated_minutes: 75
+estimated_minutes: 95
 objectives:
   - Declare variables, constants, and use basic types
   - Write functions with multiple return values
   - Use if, for, switch, and defer
+  - Understand pointers and when to use them
 ---
 
 # Basic syntax
@@ -204,6 +205,60 @@ func readFile(name string) error {
 ```
 
 Multiple defers run in LIFO order (last in, first out).
+
+### Pointers
+
+A pointer holds the memory address of a variable. Go has pointers but no pointer arithmetic.
+
+```text
+Memory layout
+┌─────────────────────────────────────────┐
+│  address    │  name  │  value           │
+├─────────────┼────────┼──────────────────┤
+│  0xc000014  │   x    │   42             │
+│  0xc000018  │   p    │   0xc000014      │  ← p = &x
+└─────────────────────────────────────────┘
+                         *p → 42
+```
+
+`&` gives you the address of a variable. `*` dereferences a pointer (reads the value at that address).
+
+```go
+x := 42
+p := &x       // p is a *int — pointer to int
+
+fmt.Println(p)   // 0xc000014070  (a memory address)
+fmt.Println(*p)  // 42
+
+*p = 100         // modify x through the pointer
+fmt.Println(x)   // 100
+```
+
+**Why pointers matter in Go:**
+- To let a function *modify* a variable, not just read it
+- For large structs (avoids copying the whole value)
+- Required for pointer receivers on methods — you will see `func (d *Drink) ...` in Module 5
+
+```go
+// Without pointer: modifies a copy — original unchanged
+func doubleWrong(n int) { n *= 2 }
+
+// With pointer: modifies the original
+func double(n *int) { *n *= 2 }
+
+x := 5
+double(&x)
+fmt.Println(x) // 10
+```
+
+**Nil pointer panic** — the most common pointer mistake:
+
+```go
+var p *int      // p is nil — points to nothing
+fmt.Println(*p) // panic: runtime error: invalid memory address
+```
+
+Always initialize a pointer before dereferencing it. The zero value of any pointer type is `nil`.
 
 ## Exercise
 

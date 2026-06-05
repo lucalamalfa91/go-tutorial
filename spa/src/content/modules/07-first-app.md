@@ -2,11 +2,12 @@
 id: first-app
 title: First working app
 session: session-2
-estimated_minutes: 120
+estimated_minutes: 145
 objectives:
   - Design and build a small CLI application
   - Model data with structs and slices
   - Optionally persist data with JSON
+  - Write basic tests with go test
 ---
 
 # First working app
@@ -225,6 +226,73 @@ case "5":
 
 Using `strings.EqualFold` makes the comparison case-insensitive.
 
+### Optional: Testing the app
+
+Go has a built-in test runner — no external libraries needed. Create a file ending in `_test.go` in the same package:
+
+```text
+go test ./...
+      ↓
+[ compile package + _test.go ]
+      ↓
+[ run each func TestXxx(t *testing.T) ]
+      ↓
+  t.Errorf() / t.Fatalf()  →  FAIL
+  (no error called)        →  PASS
+```
+
+Create `calorie_counter_test.go` alongside `main.go`:
+
+```go
+package main
+
+import "testing"
+
+func TestAddDrink(t *testing.T) {
+    drinks := []Drink{}
+    drinks = addDrink(drinks, "Lager", "beer", 150)
+
+    if len(drinks) != 1 {
+        t.Errorf("expected 1 drink, got %d", len(drinks))
+    }
+    if drinks[0].Name != "Lager" {
+        t.Errorf("expected name Lager, got %s", drinks[0].Name)
+    }
+    if drinks[0].Calories != 150 {
+        t.Errorf("expected 150 kcal, got %d", drinks[0].Calories)
+    }
+}
+
+func TestFilterByCategory(t *testing.T) {
+    drinks := []Drink{
+        {Name: "Lager", Category: "beer", Calories: 150},
+        {Name: "Mojito", Category: "cocktail", Calories: 220},
+        {Name: "IPA", Category: "beer", Calories: 180},
+    }
+
+    beers := filterByCategory(drinks, "beer")
+    if len(beers) != 2 {
+        t.Errorf("expected 2 beers, got %d", len(beers))
+    }
+
+    cocktails := filterByCategory(drinks, "cocktail")
+    if len(cocktails) != 1 {
+        t.Errorf("expected 1 cocktail, got %d", len(cocktails))
+    }
+}
+```
+
+Run the tests:
+
+```bash
+go test ./...
+# ok  calorie-counter  0.002s
+
+go test -v ./...   # verbose: shows each test name
+```
+
+`t.Errorf` marks the test as failed but continues running. `t.Fatalf` stops the current test immediately — use it when continuing would cause a panic (e.g., before dereferencing a pointer that might be nil).
+
 ## References
 
 - [encoding/json package](https://pkg.go.dev/encoding/json)
@@ -232,3 +300,5 @@ Using `strings.EqualFold` makes the comparison case-insensitive.
 - [os package](https://pkg.go.dev/os)
 - [Go by Example — JSON](https://gobyexample.com/json)
 - [Go by Example — Reading Files](https://gobyexample.com/reading-files)
+- [Go by Example — Testing](https://gobyexample.com/testing)
+- [testing package](https://pkg.go.dev/testing)
